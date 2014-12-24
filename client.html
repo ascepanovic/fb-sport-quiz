@@ -1,0 +1,115 @@
+<html>
+  <head>
+    <title>Alex socket gameplay</title>
+
+    <script src="https://cdn.socket.io/socket.io-1.2.1.js"></script>
+    <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
+
+    <!--author: ascepanovic-->
+
+  </head>
+
+  <body>
+
+      <h1>Sport Quiz</h1>
+      <h3>Enter yor name and hit the play game button</h3>
+      <h5>Please note that for test game duration is 10 seconds</h5>
+
+      <input id="name" type="text"> <input type="button" id="btn" value="Play game" />
+
+      <!--players list is a holder for all players online-->
+      <br /><br />List of all players:
+      <ul id="players"></ul>
+
+      <!--waiting div is holder for generic waiting msg-->
+      <div id="waiting" style="display:none">
+        <i>Please wait for another player to join</i>
+      </div>
+
+      <!--game div is holder for p1 vs p2 and questions-->
+      <div id="game"></div>
+
+      <div id="countdown" style="color:green; font-size:22px;"></div>
+
+      <!-- actual client logic is in script bellow, should be for sure in another file-->
+      <script>
+      var socket = io();
+
+
+      //for countdown
+      function counter(counter){
+
+        setInterval(function() {
+          counter--;
+          if (counter >= 0) {
+            $("#countdown").show();
+            span = document.getElementById("countdown");
+            span.innerHTML = "<h1>Hurry man, time left: "+counter+"</h1>";
+          }
+          // Display 'counter' wherever you want to display it.
+          if (counter === 0) {
+            //alert('this is where it happens');
+            clearInterval(counter);
+          }
+
+        }, 1000);
+      }
+
+
+      //when join btn is clicked
+      $("#btn").click(function(){
+        var username = $("#name").val();
+
+        if (username.length<2){
+          alert('Please! At least 2 letters');
+        }
+        else{
+          socket.emit('joinGame', username); //send to server joinGame
+          console.log('game joined...');
+        }
+
+      });
+
+      //server send to us game event so = game starts
+      socket.on('game', function(data){
+        console.log('Game stars, game data: '+data);
+        $("#waiting").hide();
+
+        $("#game").html("Game starts: "+data.leftPlayer+" vs "+data.rightPlayer+" in room "+data.roomName+"<br /><br /><h3>Question: "+data.question+"</h3>");
+
+        //we need here more stuff... inputs or predfined answers or what ever
+        //so the client can display actual game related stuff,
+        //and user can send unswer back to server
+        counter(10); //not really good but ok for now
+      });
+
+      //server is telling us that game has just ended
+      socket.on('gameEnded', function(winner){
+        //alert('PRC');
+        $("#game").html("<h1 style='color:red'>"+winner+"</h1>"); //display the winner
+        $("#waiting").hide();
+        $("#countdown").hide(); //hide counter
+      });
+
+      //server tell us that this client is on waiting list
+      socket.on('waiting', function(data){
+        $("#waiting").show();
+        //$("#game").hide();
+        //$("#countdown").hide();
+      });
+
+
+      //populate list of all the players, do we need this ?
+      socket.on('playersList', function(players){
+        console.log(players);
+        $("#players").empty(); //reset
+        for (var name in players){
+            $("#players").append("<li>"+players[name]+"</li>");
+        }
+      });
+
+      </script>
+
+  </body>
+
+</html>
