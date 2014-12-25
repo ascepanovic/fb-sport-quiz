@@ -19,6 +19,8 @@ var questions = [
   'Koliko klubova ima u prvoj Crnogorskoj fudbalskoj ligi ?',
   'Jos neko glupo pitanje, sa slicnom odgovorom ?'
 ];
+var correctAnswer = 'smrad';
+
 
 //serve here the client interface
 app.get('/', function(req, res){
@@ -46,6 +48,18 @@ io.on('connection', function(socket){
     //eventually we try to start the game
     tryToStartGame(socket);
 
+  });
+
+  socket.on('answer', function(username, answer){
+    console.log("Answer given: "+answer+" from: "+username +" backend player: "+playerNames[socket]);
+    if (answer===correctAnswer){
+      console.log("CORRECT ANSWER");
+      winner = username; //should be socket
+
+      socket.winner = true;
+      var username = playerNames[socket.id];
+      console.log("Winner name: "+username);
+    }
   });
 
 
@@ -92,7 +106,7 @@ function tryToStartGame(socket){
   console.log("Size of room "+lastRoom+" is: "+getObjectSize(clients));
 
   //we are checking size of last room, in case that we have 2 differen dudes, game can start
-  if (getObjectSize(clients) == 2){
+  if (getObjectSize(clients) == 3){
 
     //ensure here a random question
     var question = questions[Math.floor(Math.random() * questions.length)];
@@ -101,6 +115,7 @@ function tryToStartGame(socket){
     games['default']= {
       'leftPlayer': playerNames[getFromObject(clients, 0)], //note that we are sending only username
       'rightPlayer': playerNames[getFromObject(clients, 1)], //and not an full object
+      'trdPlayer': playerNames[getFromObject(clients, 2)],
       'question': question,
       'roomName': lastRoom
     };
@@ -119,9 +134,23 @@ function tryToStartGame(socket){
 
       //we emit event only to correct room!
       console.log("Canceling game : "+gameToCancel);
-      io.to(gameToCancel).emit('gameEnded', "Winner logic is todo ;) ");
 
-    }, 10000); //after 10 seconds
+      var msg = "Tie game";
+
+      var clients = io.sockets.adapter.rooms[gameToCancel];
+
+      if (socket.winner){
+        console.log('WINNN');
+        msg = "WINNER IS: "+playerNames[socket.id];
+      }
+
+      for (key in clients){
+        console.log("KEY"+key);
+      }
+
+      io.to(gameToCancel).emit('gameEnded', msg);
+
+    }, 20000); //after 10 seconds
 
     //reset the room name, so next time when this function is called in second room
     //we will have something different
@@ -130,7 +159,7 @@ function tryToStartGame(socket){
 
   //we have less then 2 players, then we need to tell him,
   //that he need to wait for another player
-  if (getObjectSize(clients)<2){
+  if (getObjectSize(clients)<3){
     console.log("Less then 2 players");
     socket.emit('waiting', 'Waiting for another user to join the game');
   }

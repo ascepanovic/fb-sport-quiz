@@ -29,6 +29,9 @@
       <!--game div is holder for p1 vs p2 and questions-->
       <div id="game"></div>
 
+
+      <input id="answer" type="text"> <input type="button" id="answerBtn" value="Send Answer" />
+
       <div id="countdown" style="color:green; font-size:22px;"></div>
 
       <!-- actual client logic is in script bellow, should be for sure in another file-->
@@ -55,9 +58,12 @@
         }, 1000);
       }
 
+      var username = $("#name").val();
+
 
       //when join btn is clicked
       $("#btn").click(function(){
+
         var username = $("#name").val();
 
         if (username.length<2){
@@ -70,12 +76,26 @@
 
       });
 
+
+      //when answer is submited
+      $("#answerBtn").click(function(){
+        var answer = $("#answer").val();
+
+        if (answer.length<1){
+          alert("Please type something");
+        }
+        else{
+          socket.emit('answer', username, answer);
+        }
+
+      });
+
       //server send to us game event so = game starts
       socket.on('game', function(data){
         console.log('Game stars, game data: '+data);
         $("#waiting").hide();
 
-        $("#game").html("Game starts: "+data.leftPlayer+" vs "+data.rightPlayer+" in room "+data.roomName+"<br /><br /><h3>Question: "+data.question+"</h3>");
+        $("#game").html("Game starts: "+data.leftPlayer+" vs "+data.rightPlayer+" vs "+data.trdPlayer+" in room "+data.roomName+"<br /><br /><h3>Question: "+data.question+"</h3>");
 
         //we need here more stuff... inputs or predfined answers or what ever
         //so the client can display actual game related stuff,
@@ -94,7 +114,7 @@
       //server tell us that this client is on waiting list
       socket.on('waiting', function(data){
         $("#waiting").show();
-        //$("#game").hide();
+        //$("#game").hide();s
         //$("#countdown").hide();
       });
 
