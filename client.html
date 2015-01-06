@@ -18,7 +18,8 @@
       <input id="name" type="text"> <input type="button" id="btn" value="Play game" />
 
       <!--players list is a holder for all players online-->
-      <br /><br />List of all players:
+      <br /><br />Players connected: <div style="display:inline;" id="playersConnected"></div>
+      <br/>List of all players:
       <ul id="players"></ul>
 
       <!--waiting div is holder for generic waiting msg-->
@@ -29,9 +30,9 @@
       <!--game div is holder for p1 vs p2 and questions-->
       <div id="game"></div>
 
-
+      <div id="answers" style="display:none;">
       <input id="answer" type="text"> <input type="button" id="answerBtn" value="Send Answer" />
-
+      </div>
       <div id="countdown" style="color:green; font-size:22px;"></div>
 
       <!-- actual client logic is in script bellow, should be for sure in another file-->
@@ -94,6 +95,7 @@
       socket.on('game', function(data){
         console.log('Game stars, game data: '+data);
         $("#waiting").hide();
+        $("#answers").show();
 
         $("#game").html("Game starts: "+data.leftPlayer+" vs "+data.rightPlayer+" vs "+data.trdPlayer+" in room "+data.roomName+"<br /><br /><h3>Question: "+data.question+"</h3>");
 
@@ -116,6 +118,10 @@
         $("#waiting").show();
         //$("#game").hide();s
         //$("#countdown").hide();
+      });
+
+      socket.on('playersConnected',function(playersConnected) {
+        $("#playersConnected").html(playersConnected);
       });
 
 

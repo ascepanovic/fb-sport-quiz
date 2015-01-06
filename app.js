@@ -32,6 +32,8 @@ io.on('connection', function(socket){
 
   //in feture here we need to run session checks and other stuff before the join
 
+  //to all people number of connected players
+  io.emit('playersConnected',getObjectSize(players));
 
   //when client says he wants to play
   socket.on('joinGame', function(username){
@@ -41,6 +43,9 @@ io.on('connection', function(socket){
 
     //then to all pepople wh send new list of players
     io.emit('playersList', getFormatedPlayers());
+
+    //emit new numebr of players
+    io.emit('playersConnected',getObjectSize(players));
 
     //figure out in which room this player bellongs
     socket.join(lastRoom); //note that lastRoom will have different value as global variable
@@ -150,7 +155,7 @@ function tryToStartGame(socket){
 
       io.to(gameToCancel).emit('gameEnded', msg);
 
-    }, 20000); //after 10 seconds
+    }, 10000); //after 10 seconds
 
     //reset the room name, so next time when this function is called in second room
     //we will have something different
