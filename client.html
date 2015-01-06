@@ -81,6 +81,8 @@
       //when answer is submited
       $("#answerBtn").click(function(){
         var answer = $("#answer").val();
+        $("#answer").prop('disabled', true);
+        $("#answerBtn").prop('disabled', true);
 
         if (answer.length<1){
           alert("Please type something");
@@ -97,7 +99,7 @@
         $("#waiting").hide();
         $("#answers").show();
 
-        $("#game").html("Game starts: "+data.leftPlayer+" vs "+data.rightPlayer+" vs "+data.trdPlayer+" in room "+data.roomName+"<br /><br /><h3>Question: "+data.question+"</h3>");
+        $("#game").html("Game starts: "+data.leftPlayer+" vs "+data.rightPlayer+" in room "+data.roomName+"<br /><br /><h3>Question: "+data.question+"</h3>");
 
         //we need here more stuff... inputs or predfined answers or what ever
         //so the client can display actual game related stuff,

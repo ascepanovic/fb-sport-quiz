@@ -4,7 +4,9 @@ var io = require('socket.io')(server);
 
 //central objects games is current list of active games
 var players = {}; //list of player sockets
+var playerz = {}; //list of player objects
 var playerNames = {}, games =  {};
+var playerScore = {};
 var lastRoom = 'default';
 
 //this array acts like a holder for our questions, for sure we need db here
@@ -32,8 +34,10 @@ io.on('connection', function(socket){
 
   //in feture here we need to run session checks and other stuff before the join
 
-  //to all people number of connected players
+  //to all people count and list connected players
   io.emit('playersConnected',getObjectSize(players));
+  io.emit('playersList', getFormatedPlayers());
+  console.log(playerz);
 
   //when client says he wants to play
   socket.on('joinGame', function(username){
@@ -61,6 +65,8 @@ io.on('connection', function(socket){
       console.log("CORRECT ANSWER");
       winner = username; //should be socket
 
+      playerz[socket.id]["score"]++;
+
       socket.winner = true;
       var username = playerNames[socket.id];
       console.log("Winner name: "+username);
@@ -82,6 +88,12 @@ io.on('connection', function(socket){
 
 //used to add socket and username to list of players
 function addUser(user, username){
+  var player = new Object();
+  player["username"] = username;
+  player["socketID"] = user;
+  player["score"] = 0;
+  playerz[user.id] = player;
+
   players[user.id]=user;
   playerNames[user.id]=username; //put here actual user name
   console.log('user - added: '+username);
@@ -90,6 +102,7 @@ function addUser(user, username){
 //remove this user from player list and from player names
 //TODO remove it from active game, and then cancle the game btw!
 function removeUser(user){
+  delete playerz[user.id];
   delete players[user.id]; //remove id from the list
   delete playerNames[user.id];
   console.log('user - removed: '+user.id);
@@ -111,7 +124,7 @@ function tryToStartGame(socket){
   console.log("Size of room "+lastRoom+" is: "+getObjectSize(clients));
 
   //we are checking size of last room, in case that we have 2 differen dudes, game can start
-  if (getObjectSize(clients) == 3){
+  if (getObjectSize(clients) == 2){
 
     //ensure here a random question
     var question = questions[Math.floor(Math.random() * questions.length)];
@@ -120,7 +133,6 @@ function tryToStartGame(socket){
     games['default']= {
       'leftPlayer': playerNames[getFromObject(clients, 0)], //note that we are sending only username
       'rightPlayer': playerNames[getFromObject(clients, 1)], //and not an full object
-      'trdPlayer': playerNames[getFromObject(clients, 2)],
       'question': question,
       'roomName': lastRoom
     };
@@ -164,7 +176,7 @@ function tryToStartGame(socket){
 
   //we have less then 2 players, then we need to tell him,
   //that he need to wait for another player
-  if (getObjectSize(clients)<3){
+  if (getObjectSize(clients)<2){
     console.log("Less then 2 players");
     socket.emit('waiting', 'Waiting for another user to join the game');
   }
