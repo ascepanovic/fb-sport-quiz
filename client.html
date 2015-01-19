@@ -38,7 +38,7 @@
       <!-- actual client logic is in script bellow, should be for sure in another file-->
       <script>
       var socket = io();
-
+      var roomName = "sranje";   
 
       //for countdown
       function counter(counter){
@@ -88,7 +88,8 @@
           alert("Please type something");
         }
         else{
-          socket.emit('answer', username, answer);
+            console.log("SOBA:"+roomName);
+          socket.emit('answer', username, answer, roomName);
         }
 
       });
@@ -100,12 +101,25 @@
         $("#answers").show();
 
         $("#game").html("Game starts: "+data.leftPlayer+" vs "+data.rightPlayer+" in room "+data.roomName+"<br /><br /><h3>Question: "+data.question+"</h3>");
-
+          roomName = data.roomName;
         //we need here more stuff... inputs or predfined answers or what ever
         //so the client can display actual game related stuff,
         //and user can send unswer back to server
         counter(10); //not really good but ok for now
       });
+          
+      //current game is still active, now only we have new round/question      
+      socket.on('newRound', function(data){
+        console.log("New round: "+data);
+        $("#game").html("New round: "+data.question);  
+          
+        //enable input
+        $("#answer").val("");  
+        $("#answer").prop('disabled', false);
+        $("#answerBtn").prop('disabled', false);  
+          
+          counter(10);
+      });      
 
       //server is telling us that game has just ended
       socket.on('gameEnded', function(winner){

@@ -10,19 +10,22 @@ var playerScore = {};
 var lastRoom = 'default';
 
 //this array acts like a holder for our questions, for sure we need db here
-var questions = [
-  'Kako se zove srpski bivsi fudbaler, Kezman ?',
-  'Juventus FC je osnovan koje godine ?',
-  'Da li Kosovo kao reprezenatacija ucestvuje na evropskom prvenstvu 2016te godine ?',
-  'Koliko grama je teska fudbalska lopta ?',
-  'Najveci stadion na svijetu zove se ?',
-  'Iz koje zemlje je fudbalski klub Liverpul ?',
-  'Koji igrac je osvojio zlatnu loptu 1987 godine?',
-  'Koliko klubova ima u prvoj Crnogorskoj fudbalskoj ligi ?',
-  'Jos neko glupo pitanje, sa slicnom odgovorom ?'
-];
-var correctAnswer = 'smrad';
+var questions = Array();
+var q1 = {question: 'Najbolji igrac bilijara na svijetu zove se ? ', answer: 'Oliver'};
+var q2 = {question: 'Ime nekadasnjeg igraca Crvene Zvijezde, Dzajic', answer: 'Dragan'};
+var q3 = {question: 'Koliko igraca je na parketu u regularnom toku kosarkaske utakmice ?', answer: '10'};
+var q4 = {question: 'Pele, po mnogima najbolji fubdlaer svih vremna je iz koje zemlje ?', answer: 'Brazil'};
+var q5 = {question: 'Koji broj na dresu je nosio Majkl Dzordan dok je igrao u Bullsima ?', answer: '23'};
 
+questions.push(q1);
+questions.push(q2);
+questions.push(q3);
+questions.push(q4);
+questions.push(q5);
+
+var currentQuestions = Array(); //must be room related!
+var totalQuestionsInGame = 5; //ensure no repetition of questions!
+var counter = 0;
 
 //serve here the client interface
 app.get('/', function(req, res){
@@ -59,18 +62,22 @@ io.on('connection', function(socket){
 
   });
 
-  socket.on('answer', function(username, answer){
-    console.log("Answer given: "+answer+" from: "+username +" backend player: "+playerNames[socket]);
-    if (answer===correctAnswer){
-      console.log("CORRECT ANSWER");
-      winner = username; //should be socket
+  socket.on('answer', function(username, answer, room){
+    console.log("Answer given: "+answer+" room"+room);
+    
+    //check is presented question in that room
+    var question = currentQuestions[room];
+      
+    if (question.answer===answer){
+        console.log("CORRECT ANSWER");
+        winner = username; //should be socket
 
-      playerz[socket.id]["score"]++;
+        playerz[socket.id]["score"]++;
 
-      socket.winner = true;
-      var username = playerNames[socket.id];
-      console.log("Winner name: "+username);
-    }
+        socket.winner = true;
+        var username = playerNames[socket.id];
+        console.log("Winner name: "+username);
+    }  
   });
 
 
@@ -120,6 +127,7 @@ function gameEnded(roomName){
 function tryToStartGame(socket){
 
   var clients = io.sockets.adapter.rooms[lastRoom]; //so we have all the sockets in that room
+  var counter = 0;    
 
   console.log("Size of room "+lastRoom+" is: "+getObjectSize(clients));
 
@@ -128,12 +136,15 @@ function tryToStartGame(socket){
 
     //ensure here a random question
     var question = questions[Math.floor(Math.random() * questions.length)];
+      
+    //add this question as active in current room
+    currentQuestions[lastRoom] = question;
 
     //we just make a basic game array, should be more sophisticated
     games['default']= {
       'leftPlayer': playerNames[getFromObject(clients, 0)], //note that we are sending only username
       'rightPlayer': playerNames[getFromObject(clients, 1)], //and not an full object
-      'question': question,
+      'question': question.question,
       'roomName': lastRoom
     };
 
@@ -147,25 +158,50 @@ function tryToStartGame(socket){
     var gameToCancel = lastRoom; //this variable needs to be here as JS cloasure
 
     //IMPORTANT: this timmer with value above is crucial in game ending
-    setTimeout(function(){
+    var roomInterval = setInterval(function(){
+        
+      counter++; //increase round count on each timeout    
+    
+      if (counter<=totalQuestionsInGame){
+        //run new round by ensuring the same players and new question
+        //ensure here a random question
+        var newQuestion = questions[Math.floor(Math.random() * questions.length)];
+      
+        //add this question as active in current room
+        currentQuestions[gameToCancel] = newQuestion;
 
-      //we emit event only to correct room!
-      console.log("Canceling game : "+gameToCancel);
-
-      var msg = "Tie game";
-
-      var clients = io.sockets.adapter.rooms[gameToCancel];
-
-      if (socket.winner){
-        console.log('WINNN');
-        msg = "WINNER IS: "+playerNames[socket.id];
+        //we just make a basic game array, should be more sophisticated
+        games['default']['question'] = newQuestion.question
+ 
+        //finally dispatch new round  
+        io.to(gameToCancel).emit('newRound', games['default']);
+          console.log("pocinje nova runda");
       }
+      else{
+         clearInterval(roomInterval);
+         
+         //calculate scores
+         //we emit event only to correct room!
+         console.log("Canceling game : "+gameToCancel);
 
-      for (key in clients){
-        console.log("KEY"+key);
+         var msg = "Tie game";
+
+         var clients = io.sockets.adapter.rooms[gameToCancel];
+
+         //here we need to calculate score! 
+         if (socket.winner){
+            console.log('WINNN');
+            msg = "WINNER IS: "+playerNames[socket.id];
+        }
+
+        for (key in clients){
+            console.log("KEY"+key);
+        }
+        
+        //cancel game figure out the scores and determinate the winner
+        io.to(gameToCancel).emit('gameEnded', msg);  
+          
       }
-
-      io.to(gameToCancel).emit('gameEnded', msg);
 
     }, 10000); //after 10 seconds
 
