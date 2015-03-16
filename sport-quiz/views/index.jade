@@ -1,0 +1,55 @@
+extends layout
+
+block content
+
+  h1 Sport Quiz
+  h3 Enter yor name and hit the play game button
+  h5(id="countdown") Please note that for test game duration is 10 seconds
+
+  div(class="greenBig")
+
+  input(
+    type='text'
+    name='name'
+    id="name"
+  )
+
+  input(
+    type='button'
+    name='btn'
+    id='btn'
+    value='Play tha game'
+  )
+
+  p Players connected:
+
+  div(style="display:inline" id="playersConnected")
+
+  p List of all players
+
+
+  //players list is a holder for all players online
+
+  ul(id="players")
+
+
+  //waiting div is holder for generic waiting msg
+
+  div(id="waiting" style="display:none")
+        i Please wait for another player to join
+
+  //game div is holder for p1 vs p2 and questions
+  div(id="game")
+
+  div(id="answers" style="display:none")
+
+  input(
+    type="text"
+    id="answer"
+  )
+
+  input(
+    type="button"
+    id="answerBtn"
+    value="Send Answer"
+  )
