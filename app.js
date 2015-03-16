@@ -2,6 +2,10 @@ var app = require('express')();
 var server = require('http').createServer(app);
 var io = require('socket.io')(server);
 
+//db related
+var mongoose = require('mongoose');
+//mongoose.connect('mongodb://localhost/test');
+
 //central objects games is current list of active games
 var players = {}; //list of player sockets
 var playerz = {}; //list of player objects
