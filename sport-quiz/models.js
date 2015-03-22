@@ -13,6 +13,7 @@ module.exports = function(mongoose) {
   // declare seat covers here too
   var models = {
     Question : mongoose.model('Question', questionsSchema)
+
   };
 
   return models;

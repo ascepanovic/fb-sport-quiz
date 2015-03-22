@@ -11,3 +11,10 @@ a {
     color: green;
     font: 25px "Lucida Grande", Helvetica, Arial, sans-serif;
 }
+
+.questionTitle{
+
+  color: blue;
+  font-size: 25px;
+  padding: 5px;
+}

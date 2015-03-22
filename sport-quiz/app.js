@@ -24,9 +24,6 @@ var io = require('./sockets.js').listen(server)
 
 //do here list of all questions and crud logic as well
 
-var mongoose = require('mongoose');
-var models = require('./models.js')(mongoose);
-
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');

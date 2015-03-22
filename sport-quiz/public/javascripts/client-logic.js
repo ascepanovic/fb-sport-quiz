@@ -41,6 +41,14 @@ $("#btn").click(function(){
 
 });
 
+//my personal score is updated
+socket.on('myScore', function(data){
+
+  //alert("Your current score is: "+data);
+  $("#myScore").html("Score: "+data);
+
+});
+
 
 //when answer is submited
 $("#answerBtn").click(function(){
@@ -64,7 +72,8 @@ socket.on('game', function(data){
   $("#waiting").hide();
   $("#answers").show();
 
-  $("#game").html("Game starts: "+data.leftPlayer+" vs "+data.rightPlayer+" in room "+data.roomName+"<br /><br /><h3>Question: "+data.question+"</h3>");
+  $("#gameInfo").html("Game started: "+data.leftPlayer+" vs "+data.rightPlayer+" in room "+data.roomName+"<br /><br />");
+  $("#game").html("Question: "+data.question);
   roomName = data.roomName;
   //we need here more stuff... inputs or predfined answers or what ever
   //so the client can display actual game related stuff,
@@ -75,7 +84,7 @@ socket.on('game', function(data){
 //current game is still active, now only we have new round/question
 socket.on('newRound', function(data){
   console.log("New round: "+data);
-  $("#game").html("New round: "+data.question);
+  $("#game").html("New round ("+data.round+"): "+data.question);
 
   //enable input
   $("#answer").val("");

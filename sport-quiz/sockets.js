@@ -17,6 +17,21 @@ mongoose.connect('mongodb://localhost:27017/quiz_db', function (error) {
 
 mongoose.set('debug', true);
 
+var models = require('./models')(mongoose);
+var allQ;
+var query = models.Question.find({});
+
+var questions = Array();
+
+//this array acts like a holder for our questions, for sure we need db here
+query.exec(function(err, allQuestions){
+  //catch the error;
+  questions = allQuestions;
+  console.log(allQuestions);
+
+  //createGame(); //now run the game
+
+});
 
 //central objects games is current list of active games
 var players = {}; //list of player sockets
@@ -25,19 +40,6 @@ var playerNames = {}, games =  {};
 var playerScore = {};
 var lastRoom = 'default';
 
-//this array acts like a holder for our questions, for sure we need db here
-var questions = Array();
-var q1 = {question: 'Najbolji igrac bilijara na svijetu zove se ? ', answer: 'Oliver'};
-var q2 = {question: 'Ime nekadasnjeg igraca Crvene Zvijezde, Dzajic', answer: 'Dragan'};
-var q3 = {question: 'Koliko igraca je na parketu u regularnom toku kosarkaske utakmice ?', answer: '10'};
-var q4 = {question: 'Pele, po mnogima najbolji fubdlaer svih vremna je iz koje zemlje ?', answer: 'Brazil'};
-var q5 = {question: 'Koji broj na dresu je nosio Majkl Dzordan dok je igrao u Bullsima ?', answer: '23'};
-
-questions.push(q1);
-questions.push(q2);
-questions.push(q3);
-questions.push(q4);
-questions.push(q5);
 
 var currentQuestions = Array(); //must be room related!
 var totalQuestionsInGame = 5; //ensure no repetition of questions!
@@ -67,7 +69,7 @@ io.on('connection', function(socket){
     //figure out in which room this player bellongs
     socket.join(lastRoom); //note that lastRoom will have different value as global variable
 
-    //eventually we try to start the game
+    //eventually we try to start the game with that single socket
     tryToStartGame(socket);
 
   });
@@ -90,7 +92,8 @@ io.on('connection', function(socket){
 
       console.log("Score var: "+score);
 
-      players[socket.id]['score']=score+5;
+      players[socket.id]['score']=score+5; //give 5 points for each correct answer
+      socket.emit('myScore',players[socket.id]['score']);
 
       socket.winner = true;
       var username = playerNames[socket.id];
@@ -155,6 +158,8 @@ function tryToStartGame(socket){
     //ensure here a random question
     var question = questions[Math.floor(Math.random() * questions.length)];
 
+    console.log(question);
+
     //add this question as active in current room
     currentQuestions[lastRoom] = question;
 
@@ -162,7 +167,7 @@ function tryToStartGame(socket){
     games['default']= {
       'leftPlayer': playerNames[getFromObject(clients, 0)], //note that we are sending only username
       'rightPlayer': playerNames[getFromObject(clients, 1)], //and not an full object
-      'question': question.question,
+      'question': question.title,
       'roomName': lastRoom
     };
 
@@ -189,7 +194,8 @@ function tryToStartGame(socket){
         currentQuestions[gameToCancel] = newQuestion;
 
         //we just make a basic game array, should be more sophisticated
-        games['default']['question'] = newQuestion.question
+        games['default']['question'] = newQuestion.title;
+        games['default']['round'] = counter;
 
         //finally dispatch new round
         io.to(gameToCancel).emit('newRound', games['default']);

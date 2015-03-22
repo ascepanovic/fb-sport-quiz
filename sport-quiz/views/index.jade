@@ -6,6 +6,8 @@ block content
   h3 Enter yor name and hit the play game button
   h5(id="countdown") Please note that for test game duration is 10 seconds
 
+  div(id="myScore" class="score")
+
   div(class="greenBig")
 
   input(
@@ -38,8 +40,10 @@ block content
   div(id="waiting" style="display:none")
         i Please wait for another player to join
 
+  div(id="gameInfo")
+
   //game div is holder for p1 vs p2 and questions
-  div(id="game")
+  div(id="game" class="questionTitle")
 
   div(id="answers" style="display:none")
 
