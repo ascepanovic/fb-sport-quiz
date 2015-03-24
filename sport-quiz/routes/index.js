@@ -1,14 +1,27 @@
-var express = require('express');
-var router = express.Router();
+var admin = require('./admin');
+var users = require('./users');
+var questions = require('./questions');
+var errors = require('./errors');
 
-/* GET home page. */
-router.get('/', function(req, res, next) {
-  res.render('index', { title: 'FB Sport Quizz based on Express' });
-});
+module.exports = function (app) {
+	// home page
+	app.get('/', function(req, res, next) {
+    res.render('index', { title: 'FB Sport Quizz based on Express' });
+  });
 
-/* GET rules page */
-router.get('/rules', function(req, res) {
-  res.render('rules', { title: 'Sport Quiz Rules' })
-});
+  app.get('/rules', function(req, res) {
+    res.render('rules', { title: 'Sport Quiz Rules' })
+  });
 
-module.exports = router;
+  //Admin routes
+	admin(app);
+
+  //Users routes
+	users(app);
+
+  //Questions routes
+  questions(app);
+
+  //Questions routes
+  errors(app);
+};

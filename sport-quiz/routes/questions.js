@@ -1,27 +1,20 @@
-var express = require('express');
-var router = express.Router();
+module.exports = function (app) {
+  app.get('/questions', function(req, res, next) {
+    var questionList;
 
 
-/* GET questions listing. */
-router.get('/', function(req, res, next) {
+    //retarded but only way to get all questions ?
+    app.models.Question.find({}, function(err, questions) {
+      var list = {};
 
+      questions.forEach(function(q) {
+        list[q._id] = q;
+      });
 
-  var questionList;
-
-
-  //retarded but only way to get all questions ?
-  app.models.Question.find({}, function(err, questions) {
-    var list = {};
-
-    questions.forEach(function(q) {
-      list[q._id] = q;
+      questionList = list;
     });
 
-    questionList = list;
+
+    res.render('questions', { title: 'Questions', questions: questionList });
   });
-
-
-  res.render('questions', { title: 'Questions', questions: questionList });
-});
-
-module.exports = router;
+};

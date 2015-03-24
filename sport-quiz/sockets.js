@@ -146,7 +146,6 @@ function gameEnded(roomName){
 
 //central logic and game start as well as gameplay starts here
 function tryToStartGame(socket){
-
   var clients = io.sockets.adapter.rooms[lastRoom]; //so we have all the sockets in that room
   var counter = 0;
 

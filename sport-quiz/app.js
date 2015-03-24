@@ -6,21 +6,16 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 
-var routes = require('./routes/index');
-var users = require('./routes/users');
-var questions = require('./routes/questions');
-var admin = require('./routes/admin');
-
-
+var routes = require('./routes');
 
 //create application over express
 var app = express();
+routes(app);
+
 var server = app.listen(3000);
 
 //our socket io logic is in separate file
 var io = require('./sockets.js').listen(server)
-
-
 
 //do here list of all questions and crud logic as well
 
@@ -35,44 +30,5 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
-
-app.use('/', routes);
-app.use('/users', users);
-app.use('/questions', questions);
-app.use('/admin', admin);
-
-
-
-// catch 404 and forward to error handler
-app.use(function(req, res, next) {
-    var err = new Error('Not Found');
-    err.status = 404;
-    next(err);
-});
-
-// error handlers
-
-// development error handler
-// will print stacktrace
-if (app.get('env') === 'development') {
-    app.use(function(err, req, res, next) {
-        res.status(err.status || 500);
-        res.render('error', {
-            message: err.message,
-            error: err
-        });
-    });
-}
-
-// production error handler
-// no stacktraces leaked to user
-app.use(function(err, req, res, next) {
-    res.status(err.status || 500);
-    res.render('error', {
-        message: err.message,
-        error: {}
-    });
-});
-
 
 module.exports = app; //we are exporting app to other modules
