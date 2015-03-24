@@ -1,21 +1,22 @@
-var express = require('express');
-
-var path = require('path');
-var favicon = require('serve-favicon');
-var logger = require('morgan');
-var cookieParser = require('cookie-parser');
-var bodyParser = require('body-parser');
-
-var routes = require('./routes');
+var express = require('express'),
+    path = require('path'),
+    favicon = require('serve-favicon'),
+    logger = require('morgan'),
+    cookieParser = require('cookie-parser'),
+    bodyParser = require('body-parser'),
+    routes = require('./routes'),
+    app,
+    server,
+    io;
 
 //create application over express
-var app = express();
+app = express();
 routes(app);
 
-var server = app.listen(3000);
+server = app.listen(3000);
 
 //our socket io logic is in separate file
-var io = require('./sockets.js').listen(server)
+io = require('./sockets.js').listen(server)
 
 //do here list of all questions and crud logic as well
 
