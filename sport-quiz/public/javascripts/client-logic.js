@@ -31,10 +31,9 @@ $("#btn").click(function(){
 
   var username = $("#name").val();
 
-  if (username.length<2){
+  if (username.length < 2) {
     alert('Please! At least 2 letters');
-  }
-  else{
+  } else {
     socket.emit('joinGame', username); //send to server joinGame
     console.log('game joined...');
   }
