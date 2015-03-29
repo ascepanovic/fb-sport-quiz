@@ -4,17 +4,15 @@ module.exports.listen = function(app) { //wigure out module.exports !!!
 
   io = socketio(app) //it is attached to our server
 
-  var questions = require('./models/questions');
-  // questions.create({
-	// 	  title: 'ssssss',
-  //     answer: 'text'
-	//  });
-  var allQ,
-      questions;
-  var query = questions.find().exec(function(err, allQuestions){
-    questions = allQuestions;
-    console.log(questions);
-  });
+  var questionModel = require('./models/questions'),
+      allQ,
+      questions,
+      query;
+
+    query= questionModel.find().exec(function(err, allQuestions){
+      questions = allQuestions;
+      console.log(questions);
+    });
 
   //central objects games is current list of active games
   var players = {}; //list of player sockets
@@ -30,7 +28,6 @@ module.exports.listen = function(app) { //wigure out module.exports !!!
 
   //when new socket is connected
   io.on('connection', function(socket) {
-console.log('milos,milosmilosmilosmilosmilosmilosmilos')
     //in feture here we need to run session checks and other stuff before the join
 
     //to all people count and list connected players
