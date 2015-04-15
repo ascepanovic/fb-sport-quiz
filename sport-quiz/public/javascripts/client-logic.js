@@ -34,7 +34,8 @@ function buildAnswers(data){
     var btn = $('<button/>', {
        text: data['a'+i], //set text 1 to 10
        id: 'btn_'+i,
-       class: 'btnA'
+       class: 'btnA',
+       value: data['a'+i]
    });
 
    $("#answers").append(btn);
@@ -44,9 +45,9 @@ function buildAnswers(data){
 //this is how we get dynamicly created values
 $('body').on("click", ".btnA", function (){
   var btn_id = $(this).attr('id');
-  var a = $(btn_id).attr("value"); //get the value of clicked btn
+  var a = $(btn_id).attr("value"); //get the value of clicked btn - this will never work on newly created elements !
   console.log("VREDNOST: "+a);
-  alert("Odgovor: "+btn_id);
+  alert("Odgovor: "+btn_id+" Value: "+$(this).val());
 });
 
 
