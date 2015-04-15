@@ -137,7 +137,8 @@ module.exports.listen = function(app) { //wigure out module.exports !!!
       //ensure here a random question
       var question = questions[Math.floor(Math.random() * questions.length)];
 
-      console.log(question);
+      console.log(question.a1);
+      console.log("ODGOVOR: "+question);
 
       //add this question as active in current room
       currentQuestions[lastRoom] = question;
@@ -147,6 +148,10 @@ module.exports.listen = function(app) { //wigure out module.exports !!!
         'leftPlayer': playerNames[getFromObject(clients, 0)], //note that we are sending only username
         'rightPlayer': playerNames[getFromObject(clients, 1)], //and not an full object
         'question': question.title,
+        'a1': question.a1,
+        'a2': question.a2,
+        'a3': question.a3,
+        'a4': question.a4,
         'roomName': lastRoom
       };
 
@@ -173,7 +178,7 @@ module.exports.listen = function(app) { //wigure out module.exports !!!
           currentQuestions[gameToCancel] = newQuestion;
 
           //we just make a basic game array, should be more sophisticated
-          games['default']['question'] = newQuestion.title;
+          games['default']['questionRow'] = newQuestion;
           games['default']['round'] = counter;
 
           //finally dispatch new round

@@ -25,6 +25,30 @@ function counter(counter){
 
 var username = $("#name").val();
 
+//used to build pre-defined answers based on input data
+function buildAnswers(data){
+
+  $("#answers").html(""); //clear previous values
+
+  for (i=1; i<=4; i++){
+    var btn = $('<button/>', {
+       text: data['a'+i], //set text 1 to 10
+       id: 'btn_'+i,
+       class: 'btnA'
+   });
+
+   $("#answers").append(btn);
+  }
+}
+
+//this is how we get dynamicly created values
+$('body').on("click", ".btnA", function (){
+  var btn_id = $(this).attr('id');
+  var a = $(btn_id).attr("value"); //get the value of clicked btn
+  console.log("VREDNOST: "+a);
+  alert("Odgovor: "+btn_id);
+});
+
 
 //when join btn is clicked
 $("#btn").click(function(){
@@ -49,7 +73,7 @@ socket.on('myScore', function(data){
 });
 
 
-//when answer is submited
+//when answer is submited - as input
 $("#answerBtn").click(function(){
   var answer = $("#answer").val();
   $("#answer").prop('disabled', true);
@@ -65,6 +89,16 @@ $("#answerBtn").click(function(){
 
 });
 
+//predefined answer submited
+$(".btnA").click(function(){
+  alert("KLIKNUO");
+  var answer = $(this).attr("value"); //get the value of clicked btn
+
+  alert(answer);
+  socket.emit('answer', username, answer, roomName);
+});
+
+
 //server send to us game event so = game starts
 socket.on('game', function(data){
   console.log('Game stars, game data: '+data);
@@ -77,19 +111,25 @@ socket.on('game', function(data){
   //we need here more stuff... inputs or predfined answers or what ever
   //so the client can display actual game related stuff,
   //and user can send unswer back to server
+
+  buildAnswers(data);
+
   counter(10); //not really good but ok for now
 });
 
 //current game is still active, now only we have new round/question
 socket.on('newRound', function(data){
   console.log("New round: "+data);
-  $("#game").html("New round ("+data.round+"): "+data.question);
+  $("#game").html("New round ("+data.round+"): "+data.questionRow.title);
 
   //enable input
   $("#answer").val("");
   $("#answer").prop('disabled', false);
   $("#answerBtn").prop('disabled', false);
 
+  buildAnswers(data.questionRow);
+
+  //TODO ensure that counter is correct and synced in all clients!!!
   counter(10);
 });
 
@@ -98,7 +138,12 @@ socket.on('gameEnded', function(winner){
   //alert('PRC');
   $("#game").html("<h1 style='color:red'>"+winner+"</h1>"); //display the winner
   $("#waiting").hide();
-  $("#countdown").hide(); //hide counter
+  $("#countdown").hide(); //hide counter - will not work until counter is cleaned ?
+
+  //reload the page again after 4 seconds
+  setTimeout(function(){
+    window.location.reload(false);
+  }, 4000);
 });
 
 //server tell us that this client is on waiting list
