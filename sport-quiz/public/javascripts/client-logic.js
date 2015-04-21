@@ -43,11 +43,15 @@ function buildAnswers(data){
 }
 
 //this is how we get dynamicly created values
+//and sending answers to server at the same time
 $('body').on("click", ".btnA", function (){
   var btn_id = $(this).attr('id');
   var a = $(btn_id).attr("value"); //get the value of clicked btn - this will never work on newly created elements !
-  console.log("VREDNOST: "+a);
-  alert("Odgovor: "+btn_id+" Value: "+$(this).val());
+  //console.log("VREDNOST: "+a);
+  //alert("Odgovor: "+btn_id+" Value: "+$(this).val());
+  socket.emit('answer', username, $(this).val(), roomName);
+
+  $("#answers").html("Vas odgovor je poslat");
 });
 
 
@@ -74,7 +78,7 @@ socket.on('myScore', function(data){
 });
 
 
-//when answer is submited - as input
+//DEPERCATED: when answer is submited - as input
 $("#answerBtn").click(function(){
   var answer = $("#answer").val();
   $("#answer").prop('disabled', true);

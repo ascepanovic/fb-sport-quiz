@@ -15,7 +15,7 @@ module.exports.listen = function(app) { //wigure out module.exports !!!
   //});
 
   //now get random 5 questions by r point
-  query= questionModel.findRandom().limit(3).exec(function(err, allQuestions){
+  query= questionModel.findRandom().limit(5).exec(function(err, allQuestions){
       questions = allQuestions;
       console.log(questions);
     });
