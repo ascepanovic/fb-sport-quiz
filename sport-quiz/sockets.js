@@ -9,10 +9,18 @@ module.exports.listen = function(app) { //wigure out module.exports !!!
       questions,
       query;
 
-    query= questionModel.find().exec(function(err, allQuestions){
+  //TODO - this should not be here at all! This must be ensured on question add/update methods!
+  //questionModel.syncRandom(function (err, result) {
+  //  console.log("SINHRONIZACIJA RADNOM TACAKA: "+result.updated);
+  //});
+
+  //now get random 5 questions by r point
+  query= questionModel.findRandom().limit(3).exec(function(err, allQuestions){
       questions = allQuestions;
       console.log(questions);
     });
+
+
 
   //central objects games is current list of active games
   var players = {}; //list of player sockets

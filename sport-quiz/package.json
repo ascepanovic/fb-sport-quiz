@@ -13,6 +13,7 @@
     "jade": "~1.9.1",
     "mongodb": "*",
     "mongoose": "^3.8.25",
+    "mongoose-random": "^0.1.1",
     "monk": "*",
     "morgan": "~1.5.1",
     "serve-favicon": "~2.2.0"
