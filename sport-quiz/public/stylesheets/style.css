@@ -24,3 +24,25 @@ a {
   font-size: 20px;
   padding: 3px;
 }
+
+
+#myScore{
+  border: 2px black;
+  background-color: black;
+  color: white;
+  height: 40px;
+  position: fixed;
+  right: 100px;
+  top: 10px;
+}
+
+#gameDetails{
+  border-color: yellow;
+  border-style: solid;
+  border-width: 5px;
+  background-color: black;
+  color: white;
+  position: fixed;
+  right: 100px;
+  /*top: 10px;*/
+}

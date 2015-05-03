@@ -63,13 +63,13 @@ module.exports.listen = function(app) { //wigure out module.exports !!!
     });
 
     socket.on('answer', function(username, answer, room){
-      console.log("Answer given: "+answer+" room"+room);
+      console.log("Answer given: "+answer+" room "+room);
 
       //check is presented question in that room
       var question = currentQuestions[room];
 
       if (question.answer===answer){
-        console.log("CORRECT ANSWER");
+        console.log("THIS IS A CORRECT ANSWER");
         winner = username; //should be socket
 
         var score = players[socket.id]['score'];
@@ -145,14 +145,11 @@ module.exports.listen = function(app) { //wigure out module.exports !!!
       //ensure here a random question
       var question = questions[Math.floor(Math.random() * questions.length)];
 
-      console.log(question.a1);
-      console.log("ODGOVOR: "+question);
-
       //add this question as active in current room
       currentQuestions[lastRoom] = question;
 
       //we just make a basic game array, should be more sophisticated
-      games['default']= {
+      games[lastRoom]= {
         'leftPlayer': playerNames[getFromObject(clients, 0)], //note that we are sending only username
         'rightPlayer': playerNames[getFromObject(clients, 1)], //and not an full object
         'question': question.title,
@@ -166,8 +163,7 @@ module.exports.listen = function(app) { //wigure out module.exports !!!
       console.log("We can start the game");
 
       //let all the people in that room know that game can start, and send game details as well
-      io.to(lastRoom).emit('game', games['default']);
-
+      io.to(lastRoom).emit('game', games[lastRoom]);
 
       //client needs to be aware when game is ended
       var gameToCancel = lastRoom; //this variable needs to be here as JS cloasure
@@ -186,12 +182,12 @@ module.exports.listen = function(app) { //wigure out module.exports !!!
           currentQuestions[gameToCancel] = newQuestion;
 
           //we just make a basic game array, should be more sophisticated
-          games['default']['questionRow'] = newQuestion;
-          games['default']['round'] = counter;
+          games[gameToCancel]['questionRow'] = newQuestion;
+          games[gameToCancel]['round'] = counter;
 
           //finally dispatch new round
-          io.to(gameToCancel).emit('newRound', games['default']);
-          console.log("pocinje nova runda");
+          io.to(gameToCancel).emit('newRound', games[gameToCancel]);
+          console.log("pocinje nova runda... runda broj: "+counter);
         }
         else{
           clearInterval(roomInterval);
@@ -213,6 +209,9 @@ module.exports.listen = function(app) { //wigure out module.exports !!!
           for (key in clients){
             console.log("KEY"+key);
           }
+
+          //save game into database
+          console.log("Detalji igrice: "+games[gameToCancel].leftPlayer);
 
           //cancel game figure out the scores and determinate the winner
           io.to(gameToCancel).emit('gameEnded', msg);
