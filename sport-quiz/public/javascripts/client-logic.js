@@ -77,23 +77,6 @@ socket.on('myScore', function(data){
 
 });
 
-
-//DEPERCATED: when answer is submited - as input
-$("#answerBtn").click(function(){
-  var answer = $("#answer").val();
-  $("#answer").prop('disabled', true);
-  $("#answerBtn").prop('disabled', true);
-
-  if (answer.length<1){
-    alert("Please type something");
-  }
-  else{
-    console.log("SOBA:"+roomName);
-    socket.emit('answer', username, answer, roomName);
-  }
-
-});
-
 //predefined answer submited
 $(".btnA").click(function(){
   alert("KLIKNUO");
@@ -138,6 +121,14 @@ socket.on('newRound', function(data){
   counter(10);
 });
 
+//server send to specific client info about his submited answer
+socket.on('answerProcessed', function(data){
+
+  console.log('answerProcessed :: '+data);
+  $("#answers").html(data);
+  $("#answers").show();
+});
+
 //server is telling us that game has just ended
 socket.on('gameEnded', function(winner){
   //alert('PRC');
@@ -148,7 +139,7 @@ socket.on('gameEnded', function(winner){
   //reload the page again after 4 seconds
   setTimeout(function(){
     window.location.reload(false);
-  }, 4000);
+  }, 14000);
 });
 
 //server tell us that this client is on waiting list

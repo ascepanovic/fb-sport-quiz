@@ -1,4 +1,5 @@
-var socketio = require('socket.io')
+var socketio = require('socket.io');
+var util = require('util'); // used for usefull console log for exaple
 
 module.exports.listen = function(app) { //wigure out module.exports !!!
 
@@ -63,13 +64,13 @@ module.exports.listen = function(app) { //wigure out module.exports !!!
     });
 
     socket.on('answer', function(username, answer, room){
-      console.log("Answer given: "+answer+" room "+room);
-
       //check is presented question in that room
       var question = currentQuestions[room];
+      var a_msg = username+" answered "+answer+" in room "+room+ "on question: "+question.title;
+      var a_status = ''; //holder for is answer correct or wrong
 
       if (question.answer===answer){
-        console.log("THIS IS A CORRECT ANSWER");
+        a_status = "THIS IS A CORRECT ANSWER";
         winner = username; //should be socket
 
         var score = players[socket.id]['score'];
@@ -78,15 +79,23 @@ module.exports.listen = function(app) { //wigure out module.exports !!!
           score = 0;
         }
 
-        console.log("Score var: "+score);
 
         players[socket.id]['score']=score+5; //give 5 points for each correct answer
         socket.emit('myScore',players[socket.id]['score']);
 
         socket.winner = true;
         var username = playerNames[socket.id];
-        console.log("Score: "+players[socket.id]["score"]);
+        console.log(username+" score: "+players[socket.id]["score"]);
       }
+      else{
+        a_status = "SORRY, YOU ARE WRONG!";
+      }
+
+      console.log(a_msg+" :: "+a_status);
+
+      //let this user also know what he did
+      socket.emit('answerProcessed', a_status);
+
     });
 
 
@@ -211,7 +220,7 @@ module.exports.listen = function(app) { //wigure out module.exports !!!
           }
 
           //save game into database
-          console.log("Detalji igrice: "+games[gameToCancel].leftPlayer);
+          console.log("Detalji igrice: "+util.inspect(games[gameToCancel], false, null));
 
           //cancel game figure out the scores and determinate the winner
           io.to(gameToCancel).emit('gameEnded', msg);
