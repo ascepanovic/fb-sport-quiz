@@ -6,7 +6,7 @@ var errors = require('./errors');
 module.exports = function (app) {
 	// home page
 	app.get('/', function(req, res, next) {
-    res.render('index', { title: 'FB Sport Quizz based on Express' });
+    res.render('index', { title: 'FB Sport Quizz based on Express', user : req.user } ); //send user if available as well
   });
 
   app.get('/rules', function(req, res) {

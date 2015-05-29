@@ -1,5 +1,7 @@
 var socketio = require('socket.io');
 var util = require('util'); // used for usefull console log for exaple
+var passport = require('passport');
+
 
 module.exports.listen = function(app) { //wigure out module.exports !!!
 
@@ -45,7 +47,7 @@ module.exports.listen = function(app) { //wigure out module.exports !!!
 
     //when client says he wants to play
     socket.on('joinGame', function(username) {
-
+      console.log("SVE: "+app);
       //we register him as player
       addUser(socket, username);
 

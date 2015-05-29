@@ -6,6 +6,14 @@ block content
   h3 Enter yor name and hit the play game button
   h5(id="countdown") Please note that for test game duration is 10 seconds
 
+  if (!user)
+     a(href="/login") Login
+     br
+     a(href="/register") Registracija
+   if (user)
+     p Prijavljeni ste kao #{user.username}
+     a(href="/logout") Logout
+
   div(id="myScore" class="score")
 
   div(id="gameHistory")
