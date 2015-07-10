@@ -4,6 +4,7 @@ var express = require('express'),
     logger = require('morgan'),
     cookieParser = require('cookie-parser'),
     passport = require('passport'), //needed here so we can use passport
+    mongoose = require('mongoose'),
     bodyParser = require('body-parser');
 
 module.exports = function (app) {
