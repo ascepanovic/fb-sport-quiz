@@ -17,6 +17,7 @@ var Account = require('./models/account');
       passport.serializeUser(Account.serializeUser());
       passport.deserializeUser(Account.deserializeUser());
 
+//parameters must be in config!
 mongoose.connect('mongodb://localhost:27017/quiz_db', function (error, db) {
   mongoose.set('debug', true);
   //create application over express

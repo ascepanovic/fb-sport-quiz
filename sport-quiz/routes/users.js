@@ -1,6 +1,10 @@
 var passport = require('passport');
 var Account = require('../models/account');
 
+//will hanlde verry basic login and registration of users
+//main question is should this part be in node at all
+//also we need to connect authorized user to socket right away!
+
 module.exports = function (app) {
   app.get('/users', function(req, res, next) {
     res.send('respond with a resource');

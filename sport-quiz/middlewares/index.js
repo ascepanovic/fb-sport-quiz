@@ -4,6 +4,8 @@ var express = require('express'),
     logger = require('morgan'),
     cookieParser = require('cookie-parser'),
     passport = require('passport'), //needed here so we can use passport
+    session = require('express-session'),
+    MongoStore = require('connect-mongo')(session),
     mongoose = require('mongoose'),
     bodyParser = require('body-parser');
 
@@ -15,8 +17,10 @@ module.exports = function (app) {
   app.use(bodyParser.urlencoded({ extended: false }));
   app.use(cookieParser());
   //usage of passport for auth - can it be in midlewares ???
-  app.use(require('express-session')({
-    secret: 'keyboard cat',
+  app.use(session({
+    secret: 'kviz',  //this must be in config!
+    key: 'express.sid',
+    store: new MongoStore({ mongooseConnection: mongoose.connection }),
     resave: false,
     saveUninitialized: false
   }));

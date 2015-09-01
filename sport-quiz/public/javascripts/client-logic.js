@@ -49,7 +49,7 @@ $('body').on("click", ".btnA", function (){
   var a = $(btn_id).attr("value"); //get the value of clicked btn - this will never work on newly created elements !
   //console.log("VREDNOST: "+a);
   //alert("Odgovor: "+btn_id+" Value: "+$(this).val());
-  socket.emit('answer', username, $(this).val(), roomName);
+  socket.emit('answer', $(this).val(), roomName);
 
   $("#answers").html("Vas odgovor je poslat");
 });
@@ -57,24 +57,16 @@ $('body').on("click", ".btnA", function (){
 
 //when join btn is clicked
 $("#btn").click(function(){
-
-  var username = $("#name").val();
-
-  if (username.length < 2) {
-    alert('Please! At least 2 letters');
-  } else {
-    socket.emit('joinGame', username); //send to server joinGame
+    //should we ensure that this button can not be clicked when user session is not available ?
+    socket.emit('joinGame'); //send to server joinGame
     console.log('game joined...');
-  }
 
 });
 
 //my personal score is updated
 socket.on('myScore', function(data){
-
   //alert("Your current score is: "+data);
   $("#myScore").html("Score: "+data);
-
 });
 
 //predefined answer submited

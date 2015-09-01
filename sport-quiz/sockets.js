@@ -1,11 +1,25 @@
 var socketio = require('socket.io');
 var util = require('util'); // used for usefull console log for exaple
 var passport = require('passport');
+var session = require('express-session');
+var cookieParser = require('cookie-parser');
+var mongoose = require('mongoose')
+var MongoStore = require('connect-mongo')(session);  //we will store our sessions here
+var passportSocketIo = require("passport.socketio");
 
 
 module.exports.listen = function(app) { //wigure out module.exports !!!
 
   io = socketio(app) //it is attached to our server
+  //With Socket.io >= 1.0
+  io.use(passportSocketIo.authorize({
+    cookieParser: cookieParser,       // the same middleware you registrer in express
+    key:          'express.sid',       // the name of the cookie where express/connect stores its session_id
+    secret:       'kviz',    // the session_secret to parse the cookie
+    store:        new MongoStore({ mongooseConnection: mongoose.connection }),        // we NEED to use a sessionstore. no memorystore please
+    success:      onAuthorizeSuccess,  // *optional* callback on success - read more below
+    fail:         onAuthorizeFail,     // *optional* callback on fail/error - read more below
+  }));
 
   var questionModel = require('./models/questions'),
       allQ,
@@ -21,9 +35,7 @@ module.exports.listen = function(app) { //wigure out module.exports !!!
   query= questionModel.findRandom().limit(5).exec(function(err, allQuestions){
       questions = allQuestions;
       console.log(questions);
-    });
-
-
+  });
 
   //central objects games is current list of active games
   var players = {}; //list of player sockets
@@ -37,8 +49,27 @@ module.exports.listen = function(app) { //wigure out module.exports !!!
   var totalQuestionsInGame = 5; //ensure no repetition of questions!
   var counter = 0;
 
+
+  function onAuthorizeSuccess(data, accept){
+    console.log('successful connection to socket.io');
+    accept(null, true);
+  }
+
+  function onAuthorizeFail(data, message, error, accept){
+    if(error)
+      throw new Error(message);
+    console.log('failed connection to socket.io:', message);
+
+    // We use this callback to log all of our failed connections.
+    accept(null, false);
+
+    //log this in file ?
+  }
+
+
   //when new socket is connected
   io.on('connection', function(socket) {
+    console.log("Connection event is present as well...: "+socket.request.user.username);
     //in feture here we need to run session checks and other stuff before the join
 
     //to all people count and list connected players
@@ -46,10 +77,10 @@ module.exports.listen = function(app) { //wigure out module.exports !!!
     io.emit('playersList', getFormatedPlayers());
 
     //when client says he wants to play
-    socket.on('joinGame', function(username) {
+    socket.on('joinGame', function() {
       console.log("SVE: "+app);
       //we register him as player
-      addUser(socket, username);
+      addUser(socket, socket.request.user.username);
 
       //then to all pepople wh send new list of players
       io.emit('playersList', getFormatedPlayers());
@@ -65,7 +96,10 @@ module.exports.listen = function(app) { //wigure out module.exports !!!
 
     });
 
-    socket.on('answer', function(username, answer, room){
+    //TODO loging answers somewhere and calculate score better also pull score increase from con
+    socket.on('answer', function(answer, room){
+      //get username from socket
+      var username = socket.request.user.username;
       //check is presented question in that room
       var question = currentQuestions[room];
       var a_msg = username+" answered "+answer+" in room "+room+ "on question: "+question.title;
@@ -73,7 +107,6 @@ module.exports.listen = function(app) { //wigure out module.exports !!!
 
       if (question.answer===answer){
         a_status = "THIS IS A CORRECT ANSWER";
-        winner = username; //should be socket
 
         var score = players[socket.id]['score'];
 
@@ -81,12 +114,8 @@ module.exports.listen = function(app) { //wigure out module.exports !!!
           score = 0;
         }
 
-
         players[socket.id]['score']=score+5; //give 5 points for each correct answer
         socket.emit('myScore',players[socket.id]['score']);
-
-        socket.winner = true;
-        var username = playerNames[socket.id];
         console.log(username+" score: "+players[socket.id]["score"]);
       }
       else{

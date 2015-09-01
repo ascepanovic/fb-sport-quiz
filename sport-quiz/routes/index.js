@@ -22,6 +22,6 @@ module.exports = function (app) {
   //Questions routes
   questions(app);
 
-  //Questions routes
+  //Error routes
   errors(app);
 };
