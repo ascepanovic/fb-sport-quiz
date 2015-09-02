@@ -7,9 +7,9 @@ var express = require('express'),
     server,
     io;
 
-
 var passport = require('passport');
 var LocalStrategy = require('passport-local').Strategy;
+var common = require('./config/common'); //our configuration will be here
 
 // passport config
 var Account = require('./models/account');
@@ -18,8 +18,8 @@ var Account = require('./models/account');
       passport.deserializeUser(Account.deserializeUser());
 
 //parameters must be in config!
-mongoose.connect('mongodb://localhost:27017/quiz_db', function (error, db) {
-  mongoose.set('debug', true);
+mongoose.connect(common.config.mongo_string, function (error, db) {
+  mongoose.set('debug', common.config.mongoose_debug);
   //create application over express
   app = express();
 
@@ -27,7 +27,7 @@ mongoose.connect('mongodb://localhost:27017/quiz_db', function (error, db) {
   middlewares(app);
   routes(app);
 
-  server = app.listen(3000);
+  server = app.listen(common.config.server_port);
 
   //our socket io logic is in separate file
   io = require('./sockets.js').listen(server);

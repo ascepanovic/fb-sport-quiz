@@ -6,6 +6,7 @@ var cookieParser = require('cookie-parser');
 var mongoose = require('mongoose')
 var MongoStore = require('connect-mongo')(session);  //we will store our sessions here
 var passportSocketIo = require("passport.socketio");
+var common = require('./config/common'); //our configuration will be here
 
 
 module.exports.listen = function(app) { //wigure out module.exports !!!
@@ -14,8 +15,8 @@ module.exports.listen = function(app) { //wigure out module.exports !!!
   //With Socket.io >= 1.0
   io.use(passportSocketIo.authorize({
     cookieParser: cookieParser,       // the same middleware you registrer in express
-    key:          'express.sid',       // the name of the cookie where express/connect stores its session_id
-    secret:       'kviz',    // the session_secret to parse the cookie
+    key:          common.config.session_key,       // the name of the cookie where express/connect stores its session_id
+    secret:       common.config.session_secret,    // the session_secret to parse the cookie
     store:        new MongoStore({ mongooseConnection: mongoose.connection }),        // we NEED to use a sessionstore. no memorystore please
     success:      onAuthorizeSuccess,  // *optional* callback on success - read more below
     fail:         onAuthorizeFail,     // *optional* callback on fail/error - read more below
@@ -43,7 +44,7 @@ module.exports.listen = function(app) { //wigure out module.exports !!!
   var lastRoom = 'default';
 
   var currentQuestions = Array(); //must be room related!
-  var totalQuestionsInGame = 1; //ensure no repetition of questions!
+  var totalQuestionsInGame = common.config.room_rounds; //ensure no repetition of questions!
   var counter = 0;
 
 
@@ -91,7 +92,7 @@ module.exports.listen = function(app) { //wigure out module.exports !!!
       tryToStartGame(socket);
     });
 
-    //TODO loging answers somewhere and calculate score better also pull score increase from con
+    //TODO loging answers somewhere and calculate score better also pull score increase from cron
     socket.on('answer', function(answer, room){
       //get username from socket
       var username = socket.request.user.username;
@@ -123,7 +124,6 @@ module.exports.listen = function(app) { //wigure out module.exports !!!
       socket.emit('answerProcessed', a_status);
     });
 
-
     //disconect - remove players
     //TODO a lot of stuff, end game at first place, make db related stuff and so on
     socket.on('disconnect', function(){
@@ -147,7 +147,7 @@ module.exports.listen = function(app) { //wigure out module.exports !!!
   }
 
   //remove this user from player list and from player names
-  //TODO remove it from active game, and then cancle the game btw!
+  //TODO remove it from active game, and then cancel the game btw!
   function removeUser(user){
     delete players[user.id]; //remove id from the list
     console.log('user - removed: '+user.id);
@@ -176,7 +176,7 @@ module.exports.listen = function(app) { //wigure out module.exports !!!
       //add this question as active in current room
       currentQuestions[lastRoom] = question;
 
-      //we just make a basic game array, should be more sophisticated in theory and we add FIFO players TODO numbers to be in congif
+      //we just make a basic game array, should be more sophisticated in theory and we add FIFO players TODO numbers to be in config
       var p1 = players[getFromObject(clients, 0)]; //so this is basiclly socket located in our players array
       var p2 = players[getFromObject(clients, 1)]; //same as above
 
@@ -266,7 +266,7 @@ module.exports.listen = function(app) { //wigure out module.exports !!!
 
     //we have less then 2 players, then we need to tell him,
     //that he need to wait for another player
-    if (getObjectSize(clients)<2){
+    if (getObjectSize(clients) < common.config.players_number){
       console.log("Less then 2 players");
       socket.emit('waiting', 'Waiting for another user to join the game');
     }
