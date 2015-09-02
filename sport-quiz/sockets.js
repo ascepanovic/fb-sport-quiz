@@ -38,15 +38,12 @@ module.exports.listen = function(app) { //wigure out module.exports !!!
   });
 
   //central objects games is current list of active games
-  var players = {}; //list of player sockets
-  var playerz = {}; //list of player objects
-  var playerNames = {}, games =  {};
-  var playerScore = {};
+  var players = {}; //list of player sockets and created player objects
+  var games =  {};
   var lastRoom = 'default';
 
-
   var currentQuestions = Array(); //must be room related!
-  var totalQuestionsInGame = 5; //ensure no repetition of questions!
+  var totalQuestionsInGame = 1; //ensure no repetition of questions!
   var counter = 0;
 
 
@@ -78,7 +75,6 @@ module.exports.listen = function(app) { //wigure out module.exports !!!
 
     //when client says he wants to play
     socket.on('joinGame', function() {
-      console.log("SVE: "+app);
       //we register him as player
       addUser(socket, socket.request.user.username);
 
@@ -93,7 +89,6 @@ module.exports.listen = function(app) { //wigure out module.exports !!!
 
       //eventually we try to start the game with that single socket
       tryToStartGame(socket);
-
     });
 
     //TODO loging answers somewhere and calculate score better also pull score increase from con
@@ -126,7 +121,6 @@ module.exports.listen = function(app) { //wigure out module.exports !!!
 
       //let this user also know what he did
       socket.emit('answerProcessed', a_status);
-
     });
 
 
@@ -146,21 +140,16 @@ module.exports.listen = function(app) { //wigure out module.exports !!!
   function addUser(user, username){
     var player = new Object();
     player["username"] = username;
-    player["socketID"] = user;
+    player["io"] = user; //socket object -- se do we rally need it here
     player["score"] = 0;
-    playerz[user.id] = player;
-
-    players[user.id]=user;
-    playerNames[user.id]=username; //put here actual user name
+    players[user.id] = player;
     console.log('user - added: '+username);
   }
 
   //remove this user from player list and from player names
   //TODO remove it from active game, and then cancle the game btw!
   function removeUser(user){
-    delete playerz[user.id];
     delete players[user.id]; //remove id from the list
-    delete playerNames[user.id];
     console.log('user - removed: '+user.id);
   }
 
@@ -181,17 +170,19 @@ module.exports.listen = function(app) { //wigure out module.exports !!!
 
     //we are checking size of last room, in case that we have 2 differen dudes, game can start
     if (getObjectSize(clients) == 2) {
-
-      //ensure here a random question
+      //ensure here a random question TODO
       var question = questions[Math.floor(Math.random() * questions.length)];
 
       //add this question as active in current room
       currentQuestions[lastRoom] = question;
 
-      //we just make a basic game array, should be more sophisticated
+      //we just make a basic game array, should be more sophisticated in theory and we add FIFO players TODO numbers to be in congif
+      var p1 = players[getFromObject(clients, 0)]; //so this is basiclly socket located in our players array
+      var p2 = players[getFromObject(clients, 1)]; //same as above
+
       games[lastRoom]= {
-        'leftPlayer': playerNames[getFromObject(clients, 0)], //note that we are sending only username
-        'rightPlayer': playerNames[getFromObject(clients, 1)], //and not an full object
+        'leftPlayer': p1.username, //note that we are sending only username
+        'rightPlayer': p2.username, //and not an full object, but maybe we should ?
         'question': question.title,
         'a1': question.a1,
         'a2': question.a2,
@@ -200,7 +191,7 @@ module.exports.listen = function(app) { //wigure out module.exports !!!
         'roomName': lastRoom
       };
 
-      console.log("We can start the game");
+      console.log("We can start the game... in room: "+lastRoom);
 
       //let all the people in that room know that game can start, and send game details as well
       io.to(lastRoom).emit('game', games[lastRoom]);
@@ -240,15 +231,23 @@ module.exports.listen = function(app) { //wigure out module.exports !!!
 
           var clients = io.sockets.adapter.rooms[gameToCancel];
 
-          //here we need to calculate score!
-          if (socket.winner){
-            console.log('WINNN');
-            msg = "WINNER IS: "+playerNames[socket.id]+" And his score is: "+players[socket.id]['score'];
-          }
+          //console.log("Detalji svih igraca: "+util.inspect(players, false, null));
+
+          //here we need to calculate score
+          var winner = players[socket.id];
 
           for (key in clients){
-            console.log("KEY"+key);
+
+            console.log("KEY: "+key+" Player: "+players[key].username+" Score: "+players[key]['score']);
+
+            if (winner.score < players[key]['score']){
+              winner = players[key];
+            }
+
           }
+
+          //TODO btw we should not have a tie game ?
+          msg = "WINNER IS: "+winner.username+" And his score is: "+winner.score;
 
           //save game into database
           console.log("Detalji igrice: "+util.inspect(games[gameToCancel], false, null));
@@ -274,9 +273,15 @@ module.exports.listen = function(app) { //wigure out module.exports !!!
 
   }
 
-  //basicaly this just return list of players to the client
+  //basicaly this just return list of players to the client TODO check is this the most optimal solution
   function getFormatedPlayers(){
-    return playerNames;
+    var data ={};
+
+    for (p in players){
+      //console.log("PLEJER - "+util.inspect(p, false, null));
+      data[p]=players[p].username;
+    }
+    return data;
   }
 
   //hellper function to check size of object
