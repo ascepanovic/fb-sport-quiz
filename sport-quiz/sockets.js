@@ -1,12 +1,12 @@
-var socketio = require('socket.io');
-var util = require('util'); // used for usefull console log for exaple
-var passport = require('passport');
-var session = require('express-session');
-var cookieParser = require('cookie-parser');
-var mongoose = require('mongoose')
-var MongoStore = require('connect-mongo')(session);  //we will store our sessions here
-var passportSocketIo = require("passport.socketio");
-var common = require('./config/common'); //our configuration will be here
+var socketio = require('socket.io'),
+    util = require('util'), // used for usefull console log for exaple
+    passport = require('passport'),
+    session = require('express-session'),
+    cookieParser = require('cookie-parser'),
+    mongoose = require('mongoose'),
+    MongoStore = require('connect-mongo')(session),  //we will store our sessions here
+    passportSocketIo = require("passport.socketio"),
+    common = require('./config/common'); //our configuration will be here
 
 
 module.exports.listen = function(app) { //wigure out module.exports !!!
@@ -289,7 +289,7 @@ module.exports.listen = function(app) { //wigure out module.exports !!!
     var size = 0, key; // get the size data
 
     for (key in obj) { // check the okeys in the object
-      if (obj.hasOwnProperty(key)) size++; // increase the size
+      if (obj.hasOwnProperty(key)) size++; //increase the size
     }
     return size; // return the size of the object
   }
@@ -300,5 +300,4 @@ module.exports.listen = function(app) { //wigure out module.exports !!!
   }
 
   return io; //so it is exposed to other modules as well
-
 }
