@@ -27,6 +27,8 @@ module.exports.listen = function(app) { //wigure out module.exports !!!
       questions,
       query;
 
+  var userModel = require('./models/account');
+
   //TODO - this should not be here at all! This must be ensured on question add/update methods!
   //questionModel.syncRandom(function (err, result) {
   //  console.log("SINHRONIZACIJA RADNOM TACAKA: "+result.updated);
@@ -143,6 +145,16 @@ module.exports.listen = function(app) { //wigure out module.exports !!!
     player["io"] = user; //socket object -- se do we rally need it here
     player["score"] = 0;
     players[user.id] = player;
+
+    //we call model to increase number of games he played TODO this maybe should not be here - ?
+    var update = { $inc: { gamesPlayed: 1 }}; //increment by 1
+    userModel.findOneAndUpdate({ username: username }, update, function(err, user) {
+      if (err) throw err;
+
+      // we have the updated user returned to us
+      console.log(user);
+    });
+
     console.log('user - added: '+username);
   }
 
@@ -151,14 +163,6 @@ module.exports.listen = function(app) { //wigure out module.exports !!!
   function removeUser(user){
     delete players[user.id]; //remove id from the list
     console.log('user - removed: '+user.id);
-  }
-
-  //this function will notfiy all players in the room
-  //that active game has just ended
-  //TODO destroy that room instance, and do other client logic.
-  function gameEnded(roomName){
-    console.log("Canceling game in: "+roomName);
-    io.to(roomName).emit('gameEnded', "Winner logic is todo ;) ");
   }
 
   //central logic and game start as well as gameplay starts here
@@ -253,6 +257,7 @@ module.exports.listen = function(app) { //wigure out module.exports !!!
           console.log("Detalji igrice: "+util.inspect(games[gameToCancel], false, null));
 
           //cancel game figure out the scores and determinate the winner
+          //TODO we need to persist game relevant details into the database
           io.to(gameToCancel).emit('gameEnded', msg);
 
         }
