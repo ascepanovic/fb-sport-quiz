@@ -2,7 +2,7 @@
 var mongoose = require('mongoose');
 var random = require('mongoose-random');
 
-var schema = mongoose.Schema({
+var question = mongoose.Schema({
   title: String,
   answer: String,
   a1: String,
@@ -12,6 +12,6 @@ var schema = mongoose.Schema({
 })
 
 //NOTE we need to have r on insert !
-schema.plugin(random, { path: 'r' }); // by default `path` is `random`. It's used internally to store a random value on each doc.
+question.plugin(random, { path: 'r' }); // by default `path` is `random`. It's used internally to store a random value on each doc.
 
-module.exports = mongoose.model('Questions', schema);
+module.exports = mongoose.model('Questions', question);

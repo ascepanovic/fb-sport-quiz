@@ -28,6 +28,7 @@ module.exports.listen = function(app) { //wigure out module.exports !!!
       query;
 
   var userModel = require('./models/account');
+  var gameModel = require('./models/game');
 
   //TODO - this should not be here at all! This must be ensured on question add/update methods!
   //questionModel.syncRandom(function (err, result) {
@@ -79,7 +80,7 @@ module.exports.listen = function(app) { //wigure out module.exports !!!
     //when client says he wants to play
     socket.on('joinGame', function() {
       //we register him as player
-      addUser(socket, socket.request.user.username);
+      addUser(socket, socket.request.user.username, socket.request.user._id);
 
       //then to all pepople wh send new list of players
       io.emit('playersList', getFormatedPlayers());
@@ -139,11 +140,12 @@ module.exports.listen = function(app) { //wigure out module.exports !!!
   /**HELPER FUNCTIONS**/
 
   //used to add socket and username to list of players
-  function addUser(user, username){
+  function addUser(user, username, dbId){
     var player = new Object();
     player["username"] = username;
     player["io"] = user; //socket object -- se do we rally need it here
     player["score"] = 0;
+    player["dbId"] = dbId; //id from our mongo collection
     players[user.id] = player;
 
     //we call model to increase number of games he played TODO this maybe should not be here - ?
@@ -199,6 +201,27 @@ module.exports.listen = function(app) { //wigure out module.exports !!!
 
       //let all the people in that room know that game can start, and send game details as well
       io.to(lastRoom).emit('game', games[lastRoom]);
+
+      //add this now into the games collection in database
+      var game = new gameModel({
+        'roomName': lastRoom,
+        'description': "Simple game",
+        'questions': [question.id], //add all questions!
+        'users': [p1.dbId, p2.dbId],
+        'status': 1,
+        'gameType': 'standard',
+        'startedAt': new Date()
+      });
+
+      //conn.collection('aaa').insert(user);
+      game.save(function (err) {
+        if (err) return handleError(err);
+        // saved!
+
+        console.log("GAME IS SAVED");
+
+      })
+
 
       //client needs to be aware when game is ended
       var gameToCancel = lastRoom; //this variable needs to be here as JS cloasure
@@ -257,7 +280,7 @@ module.exports.listen = function(app) { //wigure out module.exports !!!
           console.log("Detalji igrice: "+util.inspect(games[gameToCancel], false, null));
 
           //cancel game figure out the scores and determinate the winner
-          //TODO we need to persist game relevant details into the database
+          //TODO  we need to persist game relevant details into the database
           io.to(gameToCancel).emit('gameEnded', msg);
 
         }
